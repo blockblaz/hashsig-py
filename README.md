@@ -18,7 +18,7 @@ This repository provides Python bindings for hash-based signature schemes using 
 
 ```bash
 # Install from source
-git clone <repository-url>
+git clone https://github.com/blockblaz/hashsig-py
 cd hashsig-py
 pip install maturin
 maturin develop
