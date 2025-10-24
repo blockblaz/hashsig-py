@@ -36,6 +36,17 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ matrix.rust-version }}-${{ hashFiles('**/Cargo.lock') }}
 
+    - name: Create and activate virtual environment
+      run: |
+        python -m venv .venv
+        if [ "$RUNNER_OS" != "Windows" ]; then
+          echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+        else
+          echo "VIRTUAL_ENV=$PWD\.venv" >> $GITHUB_ENV
+          echo "$PWD\.venv\Scripts" >> $GITHUB_PATH
+        fi
+
     - name: Install maturin
       run: pip install maturin
 
@@ -82,7 +93,40 @@ jobs:
     - name: Build wheel
       run: maturin build --release
 
-    - name: Test wheel installation
+    - name: List wheel files
       run: |
-        pip install target/wheels/*.whl
-        python -c "import hashsig_py; print('Import successful')"
+        echo "Looking for wheel files in target/wheels/"
+        ls -la target/wheels/ || echo "target/wheels/ directory not found"
+        find target -name "*.whl" -type f || echo "No .whl files found"
+
+    - name: Test wheel installation (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        # Find and install the wheel file
+        WHEEL_FILE=$(find target -name "*.whl" -type f | head -1)
+        if [ -n "$WHEEL_FILE" ]; then
+          echo "Installing wheel: $WHEEL_FILE"
+          pip install "$WHEEL_FILE"
+          python -c "import hashsig_py; print('Import successful')"
+        else
+          echo "No wheel file found"
+          echo "Contents of target directory:"
+          find target -type f || echo "target directory not found"
+          exit 1
+        fi
+
+    - name: Test wheel installation (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        for /r target %%i in (*.whl) do (
+          echo Installing wheel: %%i
+          pip install "%%i"
+          python -c "import hashsig_py; print('Import successful')"
+          goto :success
+        )
+        echo No wheel file found
+        dir target /s
+        exit /b 1
+        :success
