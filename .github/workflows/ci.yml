@@ -93,11 +93,20 @@ jobs:
     - name: Build wheel
       run: maturin build --release
 
-    - name: List wheel files
+    - name: List wheel files (Linux/macOS)
+      if: runner.os != 'Windows'
       run: |
         echo "Looking for wheel files in target/wheels/"
         ls -la target/wheels/ || echo "target/wheels/ directory not found"
         find target -name "*.whl" -type f || echo "No .whl files found"
+
+    - name: List wheel files (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        echo Looking for wheel files in target/wheels/
+        dir target\wheels\ 2>nul || echo target/wheels/ directory not found
+        dir target\*.whl /s 2>nul || echo No .whl files found
 
     - name: Test wheel installation (Linux/macOS)
       if: runner.os != 'Windows'
