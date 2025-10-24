@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 
 // Import the hash-sig library types
 // Note: Currently using placeholder implementations
@@ -125,11 +125,11 @@ impl HashSigSHA3 {
     }
 
     /// Generate a new key pair
-    /// 
+    ///
     /// Args:
     ///     seed: Optional random seed (bytes). If None, uses system randomness.
     ///     activation_epoch: The epoch at which the key becomes active (default: 0)
-    /// 
+    ///
     /// Returns:
     ///     Tuple of (public_key, secret_key)
     #[pyo3(signature = (_seed=None, activation_epoch=0))]
@@ -142,31 +142,31 @@ impl HashSigSHA3 {
         // 1. Create an RNG from the seed (or use system random)
         // 2. Call T::key_gen(&mut rng, activation_epoch, self.lifetime)
         // 3. Serialize the keys
-        
+
         // For now, return placeholder keys
         let pk = PyPublicKey {
             inner: vec![0; 64], // Placeholder
         };
-        
+
         let sk = PySecretKey {
             inner: vec![0; 128], // Placeholder
             prepared_start: activation_epoch,
             prepared_end: activation_epoch + 1000,
         };
-        
+
         Ok((pk, sk))
     }
 
     /// Sign a message for a specific epoch
-    /// 
+    ///
     /// Args:
     ///     secret_key: The secret key to sign with
     ///     epoch: The epoch for this signature (must be in prepared interval)
     ///     message: The message to sign (bytes)
-    /// 
+    ///
     /// Returns:
     ///     The signature
-    /// 
+    ///
     /// Important: Each (secret_key, epoch) pair must only be used once!
     fn sign(
         &self,
@@ -183,20 +183,20 @@ impl HashSigSHA3 {
         }
 
         // In a real implementation, this would call T::sign(&sk, epoch, &message)
-        
+
         Ok(PySignature {
             inner: vec![0; 256], // Placeholder
         })
     }
 
     /// Verify a signature
-    /// 
+    ///
     /// Args:
     ///     public_key: The public key to verify against
     ///     epoch: The epoch the signature was created for
     ///     message: The message that was signed (bytes)
     ///     signature: The signature to verify
-    /// 
+    ///
     /// Returns:
     ///     True if the signature is valid, False otherwise
     fn verify(
@@ -207,7 +207,7 @@ impl HashSigSHA3 {
         _signature: &PySignature,
     ) -> PyResult<bool> {
         // In a real implementation, this would call T::verify(&pk, epoch, &message, &sig)
-        
+
         Ok(true) // Placeholder
     }
 
@@ -239,16 +239,14 @@ impl HashSigPoseidon {
         _seed: Option<Vec<u8>>,
         activation_epoch: u64,
     ) -> PyResult<(PyPublicKey, PySecretKey)> {
-        let pk = PyPublicKey {
-            inner: vec![0; 64],
-        };
-        
+        let pk = PyPublicKey { inner: vec![0; 64] };
+
         let sk = PySecretKey {
             inner: vec![0; 128],
             prepared_start: activation_epoch,
             prepared_end: activation_epoch + 1000,
         };
-        
+
         Ok((pk, sk))
     }
 
