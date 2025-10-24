@@ -57,7 +57,7 @@ python simple_example.py  # Simple usage examples
 ## Requirements
 
 - **Rust**: >= 1.87
-- **Python**: >= 3.8
+- **Python**: >= 3.8 (supports 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14)
 - **maturin**: For building Python extensions
 
 ## Signature Interface
