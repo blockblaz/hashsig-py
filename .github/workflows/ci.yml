@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
+        rust-version: ["1.87", "stable", "beta", "nightly"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up Rust ${{ matrix.rust-version }}
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ matrix.rust-version }}
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ matrix.rust-version }}-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Install maturin
+      run: pip install maturin
+
+    - name: Build Python package
+      run: maturin develop
+
+    - name: Run Python tests
+      run: |
+        python test_basic.py
+        python simple_example.py
+
+    - name: Run Rust tests
+      run: cargo test
+
+    - name: Check Rust formatting
+      run: cargo fmt -- --check
+
+    - name: Check Rust clippy
+      run: cargo clippy -- -D warnings
+
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.8, 3.11, 3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: stable
+
+    - name: Install maturin
+      run: pip install maturin
+
+    - name: Build wheel
+      run: maturin build --release
+
+    - name: Test wheel installation
+      run: |
+        pip install target/wheels/*.whl
+        python -c "import hashsig_py; print('Import successful')"
